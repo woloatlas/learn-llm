@@ -1,0 +1,26 @@
+services:
+  learn-llm:
+    build: .
+    image: learn-llm:latest
+    container_name: learn-llm
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - DATA_DIR=/data
+    volumes:
+      # On TrueNAS, map this to your pool appdata dataset, e.g.:
+      # - /mnt/user/appdata/learn-llm:/data
+      - ./data:/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3

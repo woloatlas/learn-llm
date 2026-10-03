@@ -1,0 +1,9 @@
+node_modules
+client/node_modules
+test-output
+data
+.git
+.gitignore
+.env
+.env.*
+*.log

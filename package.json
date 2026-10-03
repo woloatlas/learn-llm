@@ -7,14 +7,31 @@
   "scripts": {
     "verify": "tsx scripts/verify-all.ts",
     "verify:render": "tsx scripts/verify-render.ts",
-    "verify:gemini": "tsx scripts/verify-gemini.ts"
+    "verify:gemini": "tsx scripts/verify-gemini.ts",
+    "test": "tsx server/tests/quiz-grader.test.ts && tsx server/tests/session-runner.test.ts && tsx server/tests/visual-inspection.test.ts && tsx server/tests/research-service.test.ts && tsx server/tests/web-server.test.ts && tsx server/tests/database.test.ts && tsx server/tests/knowledge-graph.test.ts",
+    "test:quiz": "tsx server/tests/quiz-grader.test.ts",
+    "test:session": "tsx server/tests/session-runner.test.ts",
+    "test:visual": "tsx server/tests/visual-inspection.test.ts",
+    "test:research": "tsx server/tests/research-service.test.ts",
+    "test:web": "tsx server/tests/web-server.test.ts",
+    "test:db": "tsx server/tests/database.test.ts",
+    "test:kg": "tsx server/tests/knowledge-graph.test.ts",
+    "start:cli": "tsx scripts/run-cli-lesson.ts",
+    "dev:client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "start:server": "tsx server/src/index.ts",
+    "start": "tsx server/src/index.ts"
   },
   "dependencies": {
     "@google/genai": "^2.27.0",
     "@mermaid-js/mermaid-cli": "^11.4.2",
     "@resvg/resvg-js": "^2.6.2",
     "@sinclair/typebox": "^0.34.0",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.1",
+    "@fastify/websocket": "^11.3.1",
+    "@fastify/static": "^10.1.5",
+    "@fastify/cors": "^11.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
