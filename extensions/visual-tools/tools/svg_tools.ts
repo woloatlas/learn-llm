@@ -43,8 +43,26 @@ type RenderDetails = { ok: boolean; path: string; filename?: string }
 
 let session: Session | null = null
 
-/** Render an SVG file to PNG via rsvg-convert, falling back to magick. */
+/** Render an SVG file to PNG via @resvg/resvg-js, rsvg-convert, or magick. */
 async function renderSvg(svgPath: string, outPath: string, workDir: string) {
+  try {
+    // Try cross-platform native Node resvg if available
+    // @ts-ignore
+    const { Resvg } = await import("@resvg/resvg-js")
+    const svgContent = readFileSync(svgPath, "utf8")
+    const resvg = new Resvg(svgContent, {
+      fitTo: { mode: "zoom", value: 2 },
+    })
+    const pngData = resvg.render()
+    const pngBuffer = pngData.asPng()
+    writeFileSync(outPath, pngBuffer)
+    if (existsSync(outPath)) {
+      return { ok: true as const, res: { code: 0, stdout: "rendered via resvg", stderr: "", timedOut: false } }
+    }
+  } catch {
+    // CLI binary fallback
+  }
+
   // rsvg-convert renders at the SVG's intrinsic size; -z 2 doubles it for crispness.
   let res = await run("rsvg-convert", ["-z", "2", svgPath, "-o", outPath], {
     cwd: workDir,

@@ -40,7 +40,22 @@ import {
 
 const TOOL_DIR = dirname(fileURLToPath(import.meta.url))
 const EXTENSION_DIR = dirname(TOOL_DIR)
-const MMDC_BIN = join(EXTENSION_DIR, "node_modules", ".bin", "mmdc")
+
+function getMmdcBin(): string {
+  const isWin = process.platform === "win32"
+  const binName = isWin ? "mmdc.cmd" : "mmdc"
+  const candidates = [
+    join(EXTENSION_DIR, "node_modules", ".bin", binName),
+    join(EXTENSION_DIR, "node_modules", ".bin", "mmdc"),
+    join(process.cwd(), "node_modules", ".bin", binName),
+    join(process.cwd(), "node_modules", ".bin", "mmdc"),
+  ]
+  for (const c of candidates) {
+    if (existsSync(c)) return c
+  }
+  return binName
+}
+
 const GROUP = "mermaid"
 const BODY_FILE = "diagram.mmd"
 const RENDER_TIMEOUT_MS = 120_000
@@ -154,7 +169,7 @@ export default function mermaidToolsExtension(pi: ExtensionAPI) {
 
       const outPath = join(workDir, `render-${Date.now()}.png`)
       const res = await run(
-        MMDC_BIN,
+        getMmdcBin(),
         ["-i", bodyPath, "-o", outPath, "-p", cfgPath, "-s", "2", "-b", "white"],
         { cwd: workDir, timeoutMs: RENDER_TIMEOUT_MS, env: { PUPPETEER_SKIP_DOWNLOAD: "1" } },
       )

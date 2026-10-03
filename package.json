@@ -1,0 +1,24 @@
+{
+  "name": "learn-llm",
+  "version": "0.1.0",
+  "description": "A self-hosted pedagogical AI learning framework with Socratic teaching, interactive quizzes, and autonomous visual diagrams.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "verify": "tsx scripts/verify-all.ts",
+    "verify:render": "tsx scripts/verify-render.ts",
+    "verify:gemini": "tsx scripts/verify-gemini.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^2.27.0",
+    "@mermaid-js/mermaid-cli": "^11.4.2",
+    "@resvg/resvg-js": "^2.6.2",
+    "@sinclair/typebox": "^0.34.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0"
+  }
+}

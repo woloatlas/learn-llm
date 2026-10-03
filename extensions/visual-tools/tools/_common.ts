@@ -10,13 +10,17 @@
 
 import { spawn } from "node:child_process"
 import { tmpdir } from "node:os"
-import { basename, dirname, join } from "node:path"
+import { basename, delimiter, dirname, join } from "node:path"
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 
-// rsvg-convert lives under MacPorts (/opt/local/bin); magick/gs under
-// /usr/local/bin; Homebrew under /opt/homebrew/bin. Augment PATH so the child
-// pi process (which may have inherited a thin PATH) still resolves them.
-export const EXTRA_PATH = ["/opt/local/bin", "/usr/local/bin", "/opt/homebrew/bin"]
+// Standard binary paths across platforms (Linux, macOS, Windows)
+export const EXTRA_PATH = [
+  "/opt/local/bin",
+  "/usr/local/bin",
+  "/opt/homebrew/bin",
+  "/usr/bin",
+  "/bin",
+]
 
 // Transient session/preview files live under the OS temp dir (NOT the vault),
 // so only the PUBLISHED PNG ever lands inside the Obsidian vault (viz/).
@@ -24,8 +28,19 @@ export const STAGING_ROOT = join(tmpdir(), "pi-visual-tools")
 export const FILES_DIRNAME = "viz"
 
 export const CHROME_CANDIDATES = [
+  // macOS
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  // Linux / Docker
+  "/usr/bin/google-chrome",
+  "/usr/bin/chromium",
+  "/usr/bin/chromium-browser",
+  // Windows
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+  ...(process.env.LOCALAPPDATA ? [join(process.env.LOCALAPPDATA, "Google", "Chrome", "Application", "chrome.exe")] : []),
 ]
 
 export function findChrome(): string | undefined {
@@ -46,17 +61,23 @@ export function run(
   opts: { cwd: string; timeoutMs: number; env?: Record<string, string> },
 ): Promise<RunResult> {
   return new Promise((resolveRun) => {
-    const augmentedPath = [...EXTRA_PATH, process.env.PATH ?? ""].join(":")
+    const augmentedPath = [...EXTRA_PATH, process.env.PATH ?? ""].filter(Boolean).join(delimiter)
+    const isWindows = process.platform === "win32"
     const child = spawn(cmd, args, {
       cwd: opts.cwd,
       env: { ...process.env, ...(opts.env ?? {}), PATH: augmentedPath },
+      shell: isWindows && (cmd.endsWith(".cmd") || cmd.endsWith(".bat")),
     })
     let stdout = ""
     let stderr = ""
     let timedOut = false
     const timer = setTimeout(() => {
       timedOut = true
-      child.kill("SIGKILL")
+      try {
+        child.kill()
+      } catch {
+        // Ignored
+      }
     }, opts.timeoutMs)
     child.stdout.on("data", (d) => (stdout += d.toString()))
     child.stderr.on("data", (d) => (stderr += d.toString()))
